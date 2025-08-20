@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今天吃什么 · 手动抽取</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fafafa;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .result {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      background: #f5f5f5;
+      border-radius: 8px;
+      min-height: 3rem;
+    }
+
+    .history {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .history-item {
+      font-size: 0.9rem;
+      color: #555;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>今天吃什么？</h1>
+  <div class="container">
+    <button id="startBtn">开始轮播</button>
+    <button id="stopBtn" disabled>停止</button>
+    <div class="result" id="result">点击“开始轮播”试试手气～</div>
+    <div class="history">
+      <h3>历史记录</h3>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    const dishes = [
+      "红烧牛肉面", "宫保鸡丁盖饭", "麻婆豆腐", "番茄鸡蛋面", "重庆小面",
+      "牛肉汉堡+薯条", "凯撒沙拉", "玛格丽特披萨", "意大利肉酱面", "寿司套餐",
+      "豚骨拉面", "炸鸡+可乐", "部队锅", "越南河粉", "泰式绿咖喱",
+      "咖喱饭(素)", "蒸饺", "煎饺+酸辣汤", "馄饨", "羊肉泡馍"
+    ];
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const result = document.getElementById("result");
+    const historyList = document.getElementById("historyList");
+
+    let history = [];
+    let spinning = false;
+    let timer = null;
+    let index = 0;
+
+    startBtn.addEventListener("click", () => {
+      if (spinning) return;
+      spinning = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+
+      timer = setInterval(() => {
+        result.textContent = dishes[index % dishes.length];
+        index++;
+      }, 80); // 每 80ms 切换一次
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (!spinning) return;
+      clearInterval(timer);
+      spinning = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+
+      const finalChoice = result.textContent;
+      history.unshift(finalChoice);
+      if (history.length > 10) history = history.slice(0, 10);
+      renderHistory();
+    });
+
+    function renderHistory() {
+      historyList.innerHTML = history.map((h, i) =>
+        `<div class="history-item">${i + 1}. ${h}</div>`
+      ).join("");
+    }
+  </script>
+</body>
+
+</html>
