@@ -1,0 +1,28 @@
+{
+  "name": "today-eat-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "今天吃什么 · 前端页面 + AI 推荐后端代理",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "food",
+    "ai",
+    "recommendation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
+
+
+

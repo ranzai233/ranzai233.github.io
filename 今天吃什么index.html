@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今天吃什么 · DeepSeek AI 助手（完整回答版）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fafafa;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .result {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      background: #f5f5f5;
+      border-radius: 8px;
+      min-height: 3rem;
+    }
+
+    .history {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .history-item {
+      font-size: 0.9rem;
+      color: #555;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .ai-section {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .ai-title {
+      margin: 0 0 0.6rem 0;
+      font-size: 1.1rem;
+    }
+
+    .ai-controls {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .ai-controls textarea {
+      flex: 1;
+      min-height: 60px;
+      resize: vertical;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .ai-result {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 0.8rem;
+      color: #333;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+    }
+
+    /* Chat */
+    .chat-section {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .chat-title {
+      margin: 0 0 0.6rem 0;
+      font-size: 1.1rem;
+    }
+
+    .chat-window {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 0.8rem;
+      height: 260px;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      margin: 0.4rem 0;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .chat-message.user {
+      background: #e6f2ff;
+    }
+
+    .chat-message.assistant {
+      background: #fff;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      margin-top: 0.8rem;
+    }
+
+    .chat-input textarea {
+      flex: 1;
+      min-height: 60px;
+      resize: vertical;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .small {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>今天吃什么？🤖 DeepSeek AI 助手（完整回答版）</h1>
+
+  <!-- 模型状态指示器 -->
+  <div style="text-align: center; margin-bottom: 1rem;">
+    <span id="modelStatus" style="padding: 0.5rem 1rem; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem;">
+      🔍 检查模型状态...
+    </span>
+  </div>
+
+  <div class="container">
+    <button id="startBtn">开始轮播</button>
+    <button id="stopBtn" disabled>停止</button>
+    <div class="result" id="result">点击“开始轮播”试试手气～</div>
+    <div class="history">
+      <h3>历史记录</h3>
+      <div id="historyList"></div>
+    </div>
+
+    <div class="ai-section">
+      <h3 class="ai-title">🤖 DeepSeek AI 推荐（不仅限于食物）</h3>
+      <div class="ai-controls">
+        <textarea id="aiPreferences" placeholder="可填写：口味偏好、预算、辣度、忌口、就餐人数、心情、时间等"></textarea>
+        <button id="aiBtn">让 DeepSeek AI 推荐</button>
+      </div>
+      <div class="ai-result" id="aiSuggestion">在上方输入你的偏好，然后点击“让 AI 推荐”。</div>
+      <div class="small">提示：AI 会同时给出“菜品推荐 + 非食物建议（活动/饮品/音乐/心情建议） + 替代方案”。</div>
+    </div>
+
+    <div class="chat-section">
+      <h3 class="chat-title">🤖 DeepSeek AI 聊天</h3>
+      <div id="chatWindow" class="chat-window"></div>
+      <div class="chat-input">
+        <textarea id="chatInput" placeholder="和 DeepSeek AI 聊聊今天吃什么或其他日常建议，Enter 发送，Shift+Enter 换行"></textarea>
+        <button id="chatSend">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.chat-section').forEach((el, idx) => {
+    if (idx > 0) el.remove(); // 保留第一个，移除其余
+  });
+
+  // -----------------------------
+  // 2) 初始化防护：如果脚本被重复执行，则跳过第二次初始化
+  // -----------------------------
+  if (window.deepSeekChatInitialized) {
+    console.warn('DeepSeek chat already initialized — skipping duplicate setup.');
+    // 直接 return 或停止执行后续重复绑定代码
+  } else {
+    window.deepSeekChatInitialized = true;
+    const dishes = [
+      "红烧牛肉面", "宫保鸡丁盖饭", "麻婆豆腐", "番茄鸡蛋面", "重庆小面",
+      "牛肉汉堡+薯条", "凯撒沙拉", "玛格丽特披萨", "意大利肉酱面", "寿司套餐",
+      "豚骨拉面", "炸鸡+可乐", "部队锅", "越南河粉", "泰式绿咖喱",
+      "咖喱饭(素)", "蒸饺", "煎饺+酸辣汤", "馄饨", "羊肉泡馍"
+    ];
+
+    const nonFoodSuggestions = [
+      "散步 20 分钟放松心情",
+      "听一张轻松的歌单（Lo-fi/轻音乐）",
+      "喝一杯柠檬水或热茶，舒缓胃肠",
+      "看一部短片或综艺放松心情",
+      "约朋友视频聊天，交流下近况",
+      "做 5 分钟伸展运动，缓解疲劳",
+      "尝试一个简单甜点/饮品的自制教程",
+      "在阳台或窗边读 10 分钟书/文章"
+    ];
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const result = document.getElementById("result");
+    const historyList = document.getElementById("historyList");
+    const aiPreferences = document.getElementById("aiPreferences");
+    const aiBtn = document.getElementById("aiBtn");
+    const aiSuggestion = document.getElementById("aiSuggestion");
+    const chatWindow = document.getElementById("chatWindow");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
+    const modelStatus = document.getElementById("modelStatus");
+
+    let history = [];
+    let spinning = false;
+    let timer = null;
+    let index = 0;
+
+    // 检查DeepSeek模型状态（保持原有逻辑）
+    async function checkModelStatus() {
+      try {
+        const resp = await fetch('http://localhost:5000/api/status');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.model_loaded) {
+            modelStatus.innerHTML = '✅ DeepSeek AI 模型已就绪';
+            modelStatus.style.background = '#d4edda';
+            modelStatus.style.color = '#155724';
+          } else {
+            modelStatus.innerHTML = '⚠️ DeepSeek AI 模型未加载';
+            modelStatus.style.background = '#fff3cd';
+            modelStatus.style.color = '#856404';
+          }
+        } else {
+          modelStatus.innerHTML = '❌ 无法连接到DeepSeek服务';
+          modelStatus.style.background = '#f8d7da';
+          modelStatus.style.color = '#721c24';
+        }
+      } catch (err) {
+        modelStatus.innerHTML = '❌ 连接失败：' + err.message;
+        modelStatus.style.background = '#f8d7da';
+        modelStatus.style.color = '#721c24';
+      }
+    }
+
+    checkModelStatus();
+
+    startBtn.addEventListener("click", () => {
+      if (spinning) return;
+      spinning = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+
+      timer = setInterval(() => {
+        result.textContent = dishes[index % dishes.length];
+        index++;
+      }, 80); // 每 80ms 切换一次
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (!spinning) return;
+      clearInterval(timer);
+      spinning = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+
+      const finalChoice = result.textContent;
+      history.unshift(finalChoice);
+      if (history.length > 10) history = history.slice(0, 10);
+      renderHistory();
+    });
+
+    function renderHistory() {
+      historyList.innerHTML = history.map((h, i) =>
+        `<div class="history-item">${i + 1}. ${h}</div>`
+      ).join("");
+    }
+
+    // 本地备选生成器（当模型不可用或响应失败时，提供最终回答）
+    function generateLocalRecommendation(preferences) {
+      // 简单策略：优先使用关键词匹配偏好，否则随机
+      const pref = (preferences || '').toLowerCase();
+      let chosen = null;
+      for (const d of dishes) {
+        if (pref && d.toLowerCase().includes(pref)) {
+          chosen = d; break;
+        }
+      }
+      if (!chosen) chosen = dishes[Math.floor(Math.random() * dishes.length)];
+
+      const nonFood = nonFoodSuggestions[Math.floor(Math.random() * nonFoodSuggestions.length)];
+
+      return `推荐：${chosen}\n类别：食物\n理由：根据你的偏好（${preferences || '无'}）这是一个不错的选择。\n替代建议：${dishes.filter(x => x !== chosen).slice(0,3).join('、')}\n\n非食物建议：${nonFood}\n建议理由：有助于放松或配合用餐情绪。`;
+    }
+
+    // 辅助：安全解析 JSON 或 流式文本并输出
+    async function fetchWithStreamOrJson(url, payload) {
+      // 尝试 POST 并根据 content-type 处理 streaming/text/json
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000); // 20s 超时
+      try {
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const data = await resp.json();
+          return { type: 'json', data };
+        }
+
+        // 如果是 event-stream 或 text/plain/streaming，则用 reader 读取
+        if (resp.body && (ct.includes('text/event-stream') || ct.includes('text/plain') || ct.includes('stream'))) {
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let done = false;
+          let accumulated = '';
+          while (!done) {
+            const { value, done: d } = await reader.read();
+            if (value) {
+              accumulated += decoder.decode(value, { stream: true });
+              // 把最新的内容返回以便前端增量显示
+              return { type: 'stream-chunk', chunk: accumulated, done: d };
+            }
+            done = d;
+          }
+          return { type: 'stream-complete', text: accumulated };
+        }
+
+        // fallback: try to read as text
+        const text = await resp.text();
+        try {
+          const parsed = JSON.parse(text);
+          return { type: 'json', data: parsed };
+        } catch (e) {
+          return { type: 'text', text };
+        }
+      } catch (err) {
+        clearTimeout(timeout);
+        throw err;
+      }
+    }
+
+    // AI 推荐按钮：支持流/JSON，并在失败时使用本地生成器给出最终回答
+    aiBtn.addEventListener("click", async () => {
+      const preferences = (aiPreferences.value || "").trim();
+      aiBtn.disabled = true;
+      aiSuggestion.textContent = "DeepSeek AI 正在思考...";
+
+      // 构建增强提示，要求模型给出不仅限于食物的回答，并以结构化格式返回
+      const prompt = `你是一个多功能推荐助手。用户偏好：${preferences || '无'}。\n可选菜品：${dishes.join('、')}。\n请给出：\n- 推荐（简短）：菜品或方案名\n- 类别：食物/饮品/活动/其他\n- 理由：1-2 句\n- 若是食物：给出1个快速替代（可选）\n- 非食物建议：至少一个（如活动/饮品/音乐/心情/短建议）\n格式严格使用：推荐：...\n类别：...\n理由：...\n替代：...\n非食物建议：...\n请控制总长度在 200-400 字以内。`;
+
+      try {
+        // 尝试请求后端（支持流式或一次性 JSON）
+        const resultPayload = await fetchWithStreamOrJson('http://localhost:5000/api/chat', { message: prompt });
+
+        if (resultPayload.type === 'json') {
+          const data = resultPayload.data;
+          if (data && data.status === 'success' && data.response) {
+            aiSuggestion.textContent = data.response;
+          } else if (typeof data === 'string' && data.length > 0) {
+            aiSuggestion.textContent = data;
+          } else {
+            // 后端返回空或非预期结构，使用本地生成
+            aiSuggestion.textContent = generateLocalRecommendation(preferences);
+          }
+        } else if (resultPayload.type === 'stream-chunk' || resultPayload.type === 'stream-complete' || resultPayload.type === 'text') {
+          // 尝试显示流或文本
+          aiSuggestion.textContent = resultPayload.chunk || resultPayload.text || resultPayload.text;
+        } else {
+          aiSuggestion.textContent = generateLocalRecommendation(preferences);
+        }
+      } catch (err) {
+        // 处理错误，回退到本地生成的最终回答
+        console.error('AI 请求失败：', err);
+        aiSuggestion.textContent = `（使用本地备选）\n${generateLocalRecommendation(preferences)}`;
+      } finally {
+        aiBtn.disabled = false;
+      }
+    });
+
+    // ===== AI 聊天（支持流式或一次性 JSON，失败回退） =====
+    const chatMessages = [];
+    function renderChat() {
+      chatWindow.innerHTML = chatMessages.map(m => {
+        const cls = m.role === 'user' ? 'user' : 'assistant';
+        return `<div class="chat-message ${cls}">${(m.content || '').replace(/</g, '&lt;')}</div>`;
+      }).join("");
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    async function sendChat() {
+      const content = (chatInput.value || "").trim();
+      if (!content) return;
+      chatInput.value = "";
+      chatSend.disabled = true;
+
+      chatMessages.push({ role: 'user', content });
+      renderChat();
+
+      // 添加"正在思考"消息
+      const thinkingMsg = { role: 'assistant', content: '🤔 DeepSeek AI 正在思考...' };
+      chatMessages.push(thinkingMsg);
+      renderChat();
+
+      try {
+        const payload = await fetchWithStreamOrJson('http://localhost:5000/api/chat', { message: content });
+        if (payload.type === 'json') {
+          const data = payload.data;
+          if (data && data.status === 'success' && data.response) {
+            thinkingMsg.content = data.response;
+          } else if (typeof data === 'string' && data.length > 0) {
+            thinkingMsg.content = data;
+          } else {
+            thinkingMsg.content = '(无回复)';
+          }
+        } else if (payload.type === 'stream-chunk' || payload.type === 'stream-complete' || payload.type === 'text') {
+          thinkingMsg.content = payload.chunk || payload.text || '(无回复)';
+        } else {
+          thinkingMsg.content = '(无回复)';
+        }
+        renderChat();
+      } catch (err) {
+        console.error('聊天请求失败：', err);
+        thinkingMsg.content = `出错了：${err.message || err} \n（使用本地建议）\n${generateLocalRecommendation('')}`;
+        renderChat();
+      } finally {
+        chatSend.disabled = false;
+      }
+    }
+
+    chatSend.addEventListener('click', sendChat);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  }
+  </script>
+</body>
+
+</html>
